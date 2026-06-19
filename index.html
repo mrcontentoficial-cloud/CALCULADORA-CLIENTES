@@ -42,8 +42,11 @@
   .plan.sel .pick{background:var(--accent);color:#000;border-color:var(--accent)}
   /* BUILDER */
   .card{background:var(--night-card);border:1px solid var(--line);border-radius:20px;padding:24px}
-  .layout{display:grid;grid-template-columns:1.6fr 1fr;gap:22px;align-items:start}
-  @media(max-width:880px){.layout{grid-template-columns:1fr}}
+  .btn-toggle{display:block;width:100%;max-width:520px;margin:0 auto 18px;background:#070610;border:1px dashed var(--accent-deep);color:var(--accent-bright);border-radius:12px;padding:13px;font-family:'Bebas Neue';letter-spacing:.06em;font-size:17px;cursor:pointer;transition:.15s}
+  .btn-toggle:hover{border-color:var(--accent);background:rgba(155,127,212,.08)}
+  .layout{display:grid;grid-template-columns:1fr;gap:22px;align-items:start;max-width:520px;margin:0 auto}
+  .layout.expanded{grid-template-columns:1.6fr 1fr;max-width:none}
+  @media(max-width:880px){.layout.expanded{grid-template-columns:1fr}}
   .sec-t{font-family:'Bebas Neue';letter-spacing:.08em;font-size:18px;color:var(--accent-bright);margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
   .sec-t:first-child{margin-top:0}
   .svc-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
@@ -111,10 +114,11 @@
   <div class="plans" id="plans"></div>
 
   <!-- BUILDER + RESUMEN -->
-  <h2 class="sec">2. Personaliza tu plan</h2>
-  <p class="secsub">Suma o quita lo que necesites. El total se actualiza solo.</p>
-  <div class="layout">
-    <div class="card" id="builder"></div>
+  <h2 class="sec">2. Tu plan</h2>
+  <p class="secsub">Ya cargaste un plan arriba. ¿Quieres ajustarlo a tu medida? Ábrelo aquí.</p>
+  <button class="btn-toggle" id="toggleBuilder" onclick="toggleBuilder()">✏️ Personaliza tu propio paquete</button>
+  <div class="layout" id="layout">
+    <div class="card" id="builderCard" style="display:none"><div id="builder"></div></div>
     <div class="summary">
       <div class="card">
         <div id="totals"><div class="empty-note">Elige servicios para ver tu estimado.</div></div>
@@ -294,6 +298,15 @@ function enviar(){
     });
 }
 function showOk(nombre){$('#okName').textContent=nombre;$('#formBox').style.display='none';$('#success').classList.add('show');}
+
+function toggleBuilder(){
+  const card=$('#builderCard'),lay=$('#layout'),btn=$('#toggleBuilder');
+  const open=card.style.display==='none';
+  card.style.display=open?'block':'none';
+  lay.classList.toggle('expanded',open);
+  btn.textContent=open?'✕ Ocultar personalización':'✏️ Personaliza tu propio paquete';
+  if(open)card.scrollIntoView({behavior:'smooth',block:'center'});
+}
 
 renderPlans();buildBuilder();calc();
 </script>
