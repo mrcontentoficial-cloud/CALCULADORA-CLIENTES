@@ -127,11 +127,10 @@ const SECTIONS=[
   {key:'marca',title:'Identidad de marca',hint:'La base visual de tu negocio.',items:[
     {id:'identidad',name:'Quiero crear mi identidad de marca',desc:'Logo, paleta, mood board y lineamientos de tu marca.',price:2000,bill:'unica'},
   ]},
-  {key:'web',title:'Sitio web',hint:'Elige el tipo de sitio que necesitas.',items:[
-    {id:'web_landing',name:'Sitio web sencillo',desc:'Una sola página para presentarte y captar clientes.',price:8000,bill:'unica',group:'web'},
-    {id:'web_premium',name:'Sitio web profesional',desc:'Varias páginas, diseño premium y animaciones.',price:25000,bill:'unica',group:'web'},
-    {id:'web_tienda',name:'Tienda en línea (e-commerce)',desc:'Catálogo, carrito y pagos en línea para vender.',price:35000,bill:'unica',group:'web'},
-    {id:'web_mant',name:'Mantenimiento de mi sitio',desc:'Soporte, actualizaciones y mejoras cada mes.',price:1500,bill:'mensual'},
+  {key:'web',title:'Sitio web',hint:'Elige el tipo de sitio que necesitas. Todos incluyen mantenimiento mensual.',items:[
+    {id:'web_landing',name:'Sitio web sencillo',desc:'Una sola página para presentarte y captar clientes. Incluye mantenimiento mensual.',price:8000,bill:'unica',group:'web',maint:2000},
+    {id:'web_premium',name:'Sitio web profesional',desc:'Varias páginas, diseño premium y animaciones. Incluye mantenimiento mensual.',price:25000,bill:'unica',group:'web',maint:3500},
+    {id:'web_tienda',name:'Tienda en línea (e-commerce)',desc:'Catálogo, carrito y pagos en línea para vender. Incluye mantenimiento mensual.',price:35000,bill:'unica',group:'web',maint:3500},
   ]},
   {key:'contenido',title:'Contenido para redes',hint:'Quiero que me hagan el contenido. Elige el ritmo.',items:[
     {id:'cont_basico',name:'Contenido Básico',desc:'8 publicaciones y 2 reels al mes.',price:3000,bill:'mensual',group:'contenido'},
@@ -177,7 +176,11 @@ function toggle(it){
 }
 function gather(){
   let once=0,month=0;const names=[];
-  sel.forEach(id=>{const it=ALL[id];if(!it)return;if(it.bill==='unica')once+=it.price;else month+=it.price;names.push({name:it.name,bill:it.bill});});
+  sel.forEach(id=>{const it=ALL[id];if(!it)return;
+    if(it.bill==='unica')once+=it.price;else month+=it.price;
+    names.push({name:it.name,bill:it.bill});
+    if(it.maint){month+=it.maint;names.push({name:'Mantenimiento del sitio web (incluido)',bill:'mensual'});}
+  });
   return{once,month,names,total:once+month};
 }
 function calc(){
