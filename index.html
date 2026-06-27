@@ -50,6 +50,16 @@
   .opt .ot{font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;padding:2px 7px;border-radius:5px;align-self:flex-start;margin-top:3px}
   .opt .ot.mensual{background:rgba(155,127,212,.16);color:var(--accent-bright)}
   .opt .ot.unica{background:rgba(199,125,255,.14);color:var(--accent-magenta)}
+  .netpick{margin-top:12px;background:#070610;border:1px solid var(--line);border-radius:13px;padding:14px}
+  .netpick .npt{font-size:12.5px;font-weight:600;color:var(--accent-bright);margin-bottom:10px}
+  .netrow{margin-bottom:9px}
+  .netbtn{display:flex;align-items:center;gap:9px;width:100%;background:var(--night-card);border:1.5px solid var(--line);border-radius:10px;padding:9px 12px;color:#fff;cursor:pointer;font-family:'Poppins';font-size:13px;text-align:left}
+  .netbtn .nck{width:18px;height:18px;border-radius:5px;border:2px solid var(--line);flex:none;display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent}
+  .netrow.on .netbtn{border-color:var(--accent)}
+  .netrow.on .nck{background:var(--accent);border-color:var(--accent);color:#000}
+  .netlink{display:none;margin-top:7px}
+  .netrow.on .netlink{display:block}
+  .netlink input{font-size:12.5px;padding:9px 11px}
   /* RESUMEN / FORM */
   .summary{position:sticky;top:20px}
   .card{background:var(--night-card);border:1px solid var(--line);border-radius:20px;padding:22px}
@@ -106,7 +116,7 @@
         <div id="formBox">
           <label>Nombre <span class="req">*</span></label>
           <input type="text" id="f_nombre" placeholder="Tu nombre">
-          <label>Empresa o negocio (opcional)</label>
+          <label>Empresa o negocio <span class="req">*</span></label>
           <input type="text" id="f_empresa" placeholder="Nombre de tu marca">
           <label>Teléfono <span class="req">*</span></label>
           <input type="tel" id="f_tel" placeholder="Tu WhatsApp / teléfono">
@@ -156,6 +166,10 @@ const SECTIONS=[
   ]},
 ];
 const ALL={};SECTIONS.forEach(s=>s.items.forEach(i=>ALL[i.id]=i));
+const NET_PRICE=1000;
+const NETWORKS=[{k:'instagram',n:'Instagram'},{k:'facebook',n:'Facebook'},{k:'tiktok',n:'TikTok'},{k:'x',n:'X (Twitter)'},{k:'linkedin',n:'LinkedIn'},{k:'youtube',n:'YouTube'}];
+const NETNAME=k=>(NETWORKS.find(x=>x.k===k)||{}).n||k;
+const netSel=new Set();const netLinks={};
 const sel=new Set();
 const $=s=>document.querySelector(s);
 const money=n=>'$'+Math.round(n).toLocaleString('es-MX');
@@ -177,10 +191,36 @@ function render(){
       d.onclick=()=>toggle(it,d);
       opts.appendChild(d);
     });
+    if(s.key==='redes'){
+      const np=document.createElement('div');np.className='netpick';np.id='netpick';np.style.display='none';
+      np.innerHTML='<div class="npt">¿Qué redes quieres que llevemos? Marca cada una y pon su enlace.</div>'+
+        NETWORKS.map(net=>`<div class="netrow" data-net="${net.k}">
+          <button type="button" class="netbtn"><span class="nck">✓</span> ${net.n}</button>
+          <div class="netlink"><input type="url" data-netlink="${net.k}" placeholder="Enlace de tu ${net.n} (https://...)"></div>
+        </div>`).join('');
+      acc.querySelector('.acc-body').appendChild(np);
+      np.querySelectorAll('.netrow').forEach(row=>{
+        const k=row.dataset.net;
+        row.querySelector('.netbtn').onclick=()=>toggleNet(k,row);
+        row.querySelector('[data-netlink]').addEventListener('input',e=>{netLinks[k]=e.target.value.trim();});
+      });
+    }
     acc.querySelector('.acc-head').onclick=()=>acc.classList.toggle('open');
     c.appendChild(acc);
   });
   updateCounts();
+}
+function toggleNet(k,row){
+  if(netSel.has(k)){netSel.delete(k);row.classList.remove('on');}
+  else{netSel.add(k);row.classList.add('on');}
+  updateCounts();calc();
+}
+function refreshNetPicker(){
+  const np=document.getElementById('netpick');if(!np)return;
+  np.style.display=sel.has('gestion')?'block':'none';
+  if(!sel.has('gestion')){netSel.clear();Object.keys(netLinks).forEach(k=>delete netLinks[k]);
+    np.querySelectorAll('.netrow').forEach(r=>r.classList.remove('on'));
+    np.querySelectorAll('[data-netlink]').forEach(i=>i.value='');}
 }
 function toggle(it,el){
   if(sel.has(it.id)){sel.delete(it.id);el.classList.remove('sel');}
@@ -188,7 +228,7 @@ function toggle(it,el){
     if(it.group){SECTIONS.forEach(s=>s.items.forEach(i=>{if(i.group===it.group){sel.delete(i.id);const o=document.querySelector('[data-id="'+i.id+'"]');if(o)o.classList.remove('sel');}}));}
     sel.add(it.id);el.classList.add('sel');
   }
-  updateCounts();calc();
+  refreshNetPicker();updateCounts();calc();
 }
 function updateCounts(){
   SECTIONS.forEach(s=>{
@@ -200,6 +240,11 @@ function updateCounts(){
 function gather(){
   let once=0,month=0;const names=[];
   sel.forEach(id=>{const it=ALL[id];if(!it)return;
+    if(id==='gestion'){
+      const nn=netSel.size;
+      if(nn>0){month+=NET_PRICE*nn;const reds=[...netSel].map(NETNAME).join(', ');names.push({name:`Gestión de redes — ${nn} red${nn>1?'es':''} (${reds})`,bill:'mensual'});}
+      return;
+    }
     if(it.bill==='unica')once+=it.price;else month+=it.price;
     names.push({name:it.name,bill:it.bill});
     if(it.maint){month+=it.maint;names.push({name:'Mantenimiento del sitio web (incluido)',bill:'mensual'});}
@@ -229,16 +274,24 @@ function enviar(){
   const err=$('#formErr');
   const nombre=$('#f_nombre').value.trim(),empresa=$('#f_empresa').value.trim(),tel=$('#f_tel').value.trim(),correo=$('#f_correo').value.trim(),obj=$('#f_obj').value.trim();
   const g=gather();
-  if(g.total<=0){err.textContent='Elige al menos una opción antes de enviar.';err.classList.add('show');return;}
-  if(!nombre||!tel||!correo||!obj){err.textContent='Completa nombre, teléfono, correo y tu objetivo.';err.classList.add('show');return;}
-  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(correo)){err.textContent='Revisa tu correo, parece incompleto.';err.classList.add('show');return;}
+  const fail=m=>{err.textContent=m;err.classList.add('show');};
+  if(g.total<=0){fail('Elige al menos una opción antes de enviar.');return;}
+  if(!nombre||!empresa||!tel||!correo||!obj){fail('Completa todos los campos del formulario.');return;}
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(correo)){fail('Revisa tu correo, parece incompleto.');return;}
+  if((tel.replace(/\D/g,'')).length<7){fail('Revisa tu teléfono, parece incompleto.');return;}
+  if(sel.has('gestion')){
+    if(netSel.size===0){fail('Elegiste gestión de redes: marca al menos una red social.');return;}
+    for(const k of netSel){if(!netLinks[k]){fail('Pon el enlace de cada red que quieres que llevemos ('+NETNAME(k)+').');return;}}
+  }
   err.classList.remove('show');
   const lista=g.names.map(n=>`• ${n.name} (${n.bill==='unica'?'pago único':'mensual'})`).join('\n');
+  const redesTxt=sel.has('gestion')&&netSel.size?('\nRedes a gestionar:\n'+[...netSel].map(k=>'  - '+NETNAME(k)+': '+(netLinks[k]||'—')).join('\n')):'';
   const payload={
     _subject:'🟣 Nueva solicitud — '+nombre+(empresa?(' / '+empresa):''),
     _template:'table',_captcha:'false',
-    Nombre:nombre,Empresa:empresa||'—',Telefono:tel,Correo:correo,
+    Nombre:nombre,Empresa:empresa,Telefono:tel,Correo:correo,
     'Lo que necesita':lista,
+    'Redes a gestionar':sel.has('gestion')&&netSel.size?[...netSel].map(k=>NETNAME(k)+': '+(netLinks[k]||'—')).join(' | '):'—',
     'Pago unico':money(g.once),'Pago mensual':money(g.month),'Para arrancar (unico + 1a mensualidad)':money(g.total),
     'Objetivo del cliente':obj,
     'Fecha':fechaMas(0),'Valido hasta (15 dias naturales)':fechaMas(15)
@@ -247,7 +300,7 @@ function enviar(){
   fetch('https://formsubmit.co/ajax/'+MAIL,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(payload)})
     .then(r=>r.json()).then(()=>showOk(nombre))
     .catch(()=>{
-      const body=encodeURIComponent(`Nombre: ${nombre}\nEmpresa: ${empresa||'—'}\nTeléfono: ${tel}\nCorreo: ${correo}\n\nLo que necesita:\n${lista}\n\nPago único: ${money(g.once)}\nMensual: ${money(g.month)}\nPara arrancar: ${money(g.total)}\n\nObjetivo:\n${obj}`);
+      const body=encodeURIComponent(`Nombre: ${nombre}\nEmpresa: ${empresa}\nTeléfono: ${tel}\nCorreo: ${correo}\n\nLo que necesita:\n${lista}${redesTxt}\n\nPago único: ${money(g.once)}\nMensual: ${money(g.month)}\nPara arrancar: ${money(g.total)}\n\nObjetivo:\n${obj}`);
       window.location.href=`mailto:${MAIL}?subject=${encodeURIComponent('Solicitud de propuesta — '+nombre)}&body=${body}`;
       showOk(nombre);
     });
