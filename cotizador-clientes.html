@@ -57,9 +57,11 @@
   .netbtn .nck{width:18px;height:18px;border-radius:5px;border:2px solid var(--line);flex:none;display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent}
   .netrow.on .netbtn{border-color:var(--accent)}
   .netrow.on .nck{background:var(--accent);border-color:var(--accent);color:#000}
-  .netlink{display:none;margin-top:7px}
+  .netlink{display:none;margin-top:8px;position:relative}
   .netrow.on .netlink{display:block}
-  .netlink input{font-size:12.5px;padding:9px 11px}
+  .netlink::before{content:'🔗';position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;opacity:.85;pointer-events:none}
+  .netpick .netlink input{width:100%;font-size:12.5px;padding:10px 12px 10px 34px;background:#0e0c14;border:1px solid var(--accent-deep);border-radius:10px;color:#fff}
+  .netpick .netlink input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(155,127,212,.18)}
   /* RESUMEN / FORM */
   .summary{position:sticky;top:20px}
   .card{background:var(--night-card);border:1px solid var(--line);border-radius:20px;padding:22px}
@@ -78,7 +80,8 @@
   .policy b{color:var(--accent-bright)}
   label{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:12px 0 6px}
   label .req{color:var(--accent-magenta)}
-  input[type=text],input[type=email],input[type=tel],textarea{width:100%;background:#070610;border:1px solid var(--line);color:#fff;border-radius:11px;padding:11px 13px;font-family:'Poppins';font-size:14px}
+  input[type=text],input[type=email],input[type=tel],input[type=url],textarea{width:100%;background:#070610;border:1px solid var(--line);color:#fff;border-radius:11px;padding:11px 13px;font-family:'Poppins';font-size:14px}
+  input::placeholder,textarea::placeholder{color:#6e6a79}
   input:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(155,127,212,.18)}
   textarea{min-height:84px;resize:vertical}
   .btn{display:block;width:100%;border:none;border-radius:12px;padding:14px;font-family:'Bebas Neue';letter-spacing:.08em;font-size:18px;cursor:pointer;transition:.15s;margin-top:16px}
@@ -196,7 +199,7 @@ function render(){
       np.innerHTML='<div class="npt">¿Qué redes quieres que llevemos? Marca cada una y pon su enlace.</div>'+
         NETWORKS.map(net=>`<div class="netrow" data-net="${net.k}">
           <button type="button" class="netbtn"><span class="nck">✓</span> ${net.n}</button>
-          <div class="netlink"><input type="url" data-netlink="${net.k}" placeholder="Enlace de tu ${net.n} (https://...)"></div>
+          <div class="netlink"><input type="text" data-netlink="${net.k}" placeholder="Déjanos tu enlace o tu usuario de ${net.n}"></div>
         </div>`).join('');
       acc.querySelector('.acc-body').appendChild(np);
       np.querySelectorAll('.netrow').forEach(row=>{
